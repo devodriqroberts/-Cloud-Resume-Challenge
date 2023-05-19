@@ -32,7 +32,7 @@ Resources:
         - Name: devodriqroberts.com
           Type: A
           AliasTarget:
-            HostedZoneId: E3N8D2P9D946Y0
+            HostedZoneId: Z2FDTNDATAQYW2
             DNSName: !GetAtt CloudResumeChallengeDistribution.DomainName
 
   CloudResumeChallengeDistribution:
