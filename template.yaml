@@ -11,6 +11,11 @@ Globals:
     Timeout: 3
     MemorySize: 128
 
+Parameters:
+  DomainName:
+    Type: String
+    Default: "devodriqroberts.com"
+
 Resources:
   CloudResumeChallengeWebsite:
     Type: AWS::S3::Bucket
@@ -27,9 +32,9 @@ Resources:
   CloudResumeChallengeRoute53Record:
     Type: AWS::Route53::RecordSetGroup
     Properties:
-      HostedZoneId: Z056200929VLJUNVQCNZN
+      HostedZoneId: Z05098842II2E0776MPUB
       RecordSets:
-        - Name: devodriqroberts.com
+        - Name: !Ref "DomainName"
           Type: A
           AliasTarget:
             HostedZoneId: Z2FDTNDATAQYW2
