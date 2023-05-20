@@ -13,6 +13,8 @@ def lambda_handler(event, context):
       "ID" : "VisitorCount"
     }
   )
+  visitor_count = res["Item"]['VisitorCount']
+  new_visitor_count = visitor_count + 1
 
   TABLE.update_item(
     Key={
@@ -20,13 +22,19 @@ def lambda_handler(event, context):
     },
     UpdateExpression="SET VisitorCount = :val1",
     ExpressionAttributeValues={
-      ":val1" : res["Item"]['VisitorCount'] + 1
+      ":val1" : new_visitor_count
     }
   )
+  
   return {
     "statusCode": 200,
-    'headers': {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*'
-    }
+    "headers": {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "*",
+      "Access-Control-Allow-Headers": "*"
+    },
+    "body": json.dumps({
+      "visitors": str(new_visitor_count)
+    }),
   }

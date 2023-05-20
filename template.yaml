@@ -5,7 +5,6 @@ Description: >
 
   Sample SAM Template for cloud-resume-challenge
 
-# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
     Timeout: 3
@@ -60,7 +59,7 @@ Resources:
         Aliases:
           - !Ref "DomainName"
         DefaultCacheBehavior:
-          ViewerProtocolPolicy: redirect-to-https #allow-all
+          ViewerProtocolPolicy: redirect-to-https
           TargetOriginId: cloud-resume-challenge-2023.s3-website-us-east-1.amazonaws.com
           DefaultTTL: 0
           MinTTL: 0
@@ -90,13 +89,13 @@ Resources:
             Action: "s3:GetObject"
             Resource: !Sub arn:aws:s3:::${CloudResumeChallengeWebsite}/*
 
-  CloudResumeChallengeGetVisitorCountFunction:
+  CloudResumeChallengeSiteVisitorCountFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: ./
-      Handler: src/handlers/get_visitors.lambda_handler
+      Handler: src/handlers/site_visitors.lambda_handler
       Runtime: python3.9
-      Description: "Backend for getting site visitors count"
+      Description: "Backend for getting and updating site visitors count"
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref "DynamoDBTableName"
@@ -107,38 +106,19 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref ResumeViewCountApi
-            Path: /get-visitors
+            Path: /site-visitors
             Method: GET
-
-  CloudResumeChallengePutVisitorCountFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: ./
-      Handler: src/handlers/put_visitors.lambda_handler
-      Runtime: python3.9
-      Description: "Backend for updating site visitors count"
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref "DynamoDBTableName"
-      Architectures:
-        - x86_64
-      Events:
-        ResumeVisitors:
-          Type: Api
-          Properties:
-            RestApiId: !Ref ResumeViewCountApi
-            Path: /put-visitors
-            Method: PUT
 
   ResumeViewCountApi:
     Type: AWS::Serverless::Api
     Properties:
       Cors:
-        AllowOrigin: "'https://devodriqroberts.com'"
+        AllowMethods: "'PUT', 'GET'"
+        AllowOrigin: "'devodriqroberts.com'"
       EndpointConfiguration:
         Type: EDGE
-      OpenApiVersion: 3.0.1
       StageName: Prod
+      OpenApiVersion: 3.0.1
 
   CloudResumeChallengeDynamoDBTable:
     Type: AWS::DynamoDB::Table
@@ -151,38 +131,3 @@ Resources:
       KeySchema:
         - AttributeName: "ID"
           KeyType: "HASH"
-
-  # DynamoDBPolicy:
-  #   Type: AWS::S3::BucketPolicy
-  #   Properties:
-  #     Bucket: !Ref CloudResumeChallengeWebsite
-  #     PolicyDocument:
-  #       Id: ReadAndUpdateDynamoDBPolicy
-  #       Version: 2012-10-17
-  #       Statement:
-  #         - Sid: ReadAndUpdateDynamoDBPolicy
-  #           Effect: Allow
-  #           Principal: [!GetAtt CloudResumeChallengePutVisitorCountFunction.Arn]
-  #           Action: [
-  #               "dynamodb:BatchGetItem",
-  #               "dynamodb:GetItem",
-  #               "dynamodb:Query",
-  #               "dynamodb:Scan",
-  #               "dynamodb:BatchWriteItem",
-  #               "dynamodb:PutItem",
-  #               "dynamodb:UpdateItem"
-  #           ]
-  #           Resource: !Sub arn:aws:DynamoDB:::${CloudResumeChallengeWebsite}/*
-# Outputs:
-#   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
-#   # Find out more about other implicit resources you can reference within SAM
-#   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-#   HelloWorldApi:
-#     Description: "API Gateway endpoint URL for Prod stage for Hello World function"
-#     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
-#   HelloWorldFunction:
-#     Description: "Hello World Lambda Function ARN"
-#     Value: !GetAtt HelloWorldFunction.Arn
-#   HelloWorldFunctionIamRole:
-#     Description: "Implicit IAM Role created for Hello World function"
-#     Value: !GetAtt HelloWorldFunctionRole.Arn
