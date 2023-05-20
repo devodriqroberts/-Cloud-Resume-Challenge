@@ -40,12 +40,24 @@ Resources:
             HostedZoneId: Z2FDTNDATAQYW2
             DNSName: !GetAtt CloudResumeChallengeDistribution.DomainName
 
+  CloudResumeChallengeCertificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: !Ref "DomainName"
+      ValidationMethod: DNS
+
   CloudResumeChallengeDistribution:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
+        ViewerCertificate:
+          AcmCertificateArn: !Ref CloudResumeChallengeCertificate
+          SslSupportMethod: sni-only
+          MinimumProtocolVersion: TLSv1.2_2021
+        Aliases:
+          - !Ref "DomainName"
         DefaultCacheBehavior:
-          ViewerProtocolPolicy: allow-all
+          ViewerProtocolPolicy: redirect-to-https #allow-all
           TargetOriginId: cloud-resume-challenge-2023.s3-website-us-east-1.amazonaws.com
           DefaultTTL: 0
           MinTTL: 0
@@ -59,6 +71,7 @@ Resources:
               OriginProtocolPolicy: http-only
         Enabled: "true"
         DefaultRootObject: index.html
+        HttpVersion: http2and3
 
   ProductBucketPolicy:
     Type: AWS::S3::BucketPolicy
