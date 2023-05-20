@@ -110,3 +110,7 @@ img {
   color: inherit;
   text-decoration: underline;
 }
+
+.visitors {
+  color: var(--medium-gray);
+}

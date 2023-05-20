@@ -15,6 +15,9 @@ Parameters:
   DomainName:
     Type: String
     Default: "devodriqroberts.com"
+  DynamoDBTableName:
+    Type: String
+    Default: "cloud-resume-challenge"
 
 Resources:
   CloudResumeChallengeWebsite:
@@ -87,31 +90,99 @@ Resources:
             Action: "s3:GetObject"
             Resource: !Sub arn:aws:s3:::${CloudResumeChallengeWebsite}/*
 
-  HelloWorldFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+  CloudResumeChallengeGetVisitorCountFunction:
+    Type: AWS::Serverless::Function
     Properties:
-      CodeUri: hello_world/
-      Handler: app.lambda_handler
+      CodeUri: ./
+      Handler: src/handlers/get_visitors.lambda_handler
       Runtime: python3.9
+      Description: "Backend for getting site visitors count"
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref "DynamoDBTableName"
       Architectures:
         - x86_64
       Events:
-        HelloWorld:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+        ResumeVisitors:
+          Type: Api
           Properties:
-            Path: /hello
-            Method: get
+            RestApiId: !Ref ResumeViewCountApi
+            Path: /get-visitors
+            Method: GET
 
-Outputs:
-  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
-  # Find out more about other implicit resources you can reference within SAM
-  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-  HelloWorldApi:
-    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
-  HelloWorldFunction:
-    Description: "Hello World Lambda Function ARN"
-    Value: !GetAtt HelloWorldFunction.Arn
-  HelloWorldFunctionIamRole:
-    Description: "Implicit IAM Role created for Hello World function"
-    Value: !GetAtt HelloWorldFunctionRole.Arn
+  CloudResumeChallengePutVisitorCountFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: src/handlers/put_visitors.lambda_handler
+      Runtime: python3.9
+      Description: "Backend for updating site visitors count"
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref "DynamoDBTableName"
+      Architectures:
+        - x86_64
+      Events:
+        ResumeVisitors:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ResumeViewCountApi
+            Path: /put-visitors
+            Method: PUT
+
+  ResumeViewCountApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Cors:
+        AllowOrigin: "'https://devodriqroberts.com'"
+      EndpointConfiguration:
+        Type: EDGE
+      OpenApiVersion: 3.0.1
+      StageName: Prod
+
+  CloudResumeChallengeDynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: cloud-resume-challenge
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: "ID"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "ID"
+          KeyType: "HASH"
+
+  # DynamoDBPolicy:
+  #   Type: AWS::S3::BucketPolicy
+  #   Properties:
+  #     Bucket: !Ref CloudResumeChallengeWebsite
+  #     PolicyDocument:
+  #       Id: ReadAndUpdateDynamoDBPolicy
+  #       Version: 2012-10-17
+  #       Statement:
+  #         - Sid: ReadAndUpdateDynamoDBPolicy
+  #           Effect: Allow
+  #           Principal: [!GetAtt CloudResumeChallengePutVisitorCountFunction.Arn]
+  #           Action: [
+  #               "dynamodb:BatchGetItem",
+  #               "dynamodb:GetItem",
+  #               "dynamodb:Query",
+  #               "dynamodb:Scan",
+  #               "dynamodb:BatchWriteItem",
+  #               "dynamodb:PutItem",
+  #               "dynamodb:UpdateItem"
+  #           ]
+  #           Resource: !Sub arn:aws:DynamoDB:::${CloudResumeChallengeWebsite}/*
+# Outputs:
+#   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+#   # Find out more about other implicit resources you can reference within SAM
+#   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+#   HelloWorldApi:
+#     Description: "API Gateway endpoint URL for Prod stage for Hello World function"
+#     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
+#   HelloWorldFunction:
+#     Description: "Hello World Lambda Function ARN"
+#     Value: !GetAtt HelloWorldFunction.Arn
+#   HelloWorldFunctionIamRole:
+#     Description: "Implicit IAM Role created for Hello World function"
+#     Value: !GetAtt HelloWorldFunctionRole.Arn

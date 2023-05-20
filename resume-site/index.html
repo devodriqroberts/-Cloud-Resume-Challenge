@@ -4,6 +4,15 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      fetch(
+        "https://uoc47ru9c7.execute-api.us-east-1.amazonaws.com/Prod/get-visitors"
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          document.getElementById("visitor-count").innerText = data.visitors;
+        });
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -99,6 +108,10 @@
                   Virtualization Technologies: VMWare, Virtualbox
                 </li>
               </ul>
+              <hr />
+              <p class="visitors project-title">
+                Visitors: <span id="visitor-count"></span>
+              </p>
             </div>
           </div>
         </section>
