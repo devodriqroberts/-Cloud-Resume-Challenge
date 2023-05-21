@@ -20,4 +20,4 @@
 
 ## Blog
 
-- 1. [Reflections and Learnings from Completing the Cloud Resume Challenge on AWS?](https://droberts.hashnode.dev/reflections-cloud-resume-challenge-on-aws)
+- 1. [Reflections and Learnings from Completing the Cloud Resume Challenge on AWS](https://droberts.hashnode.dev/reflections-cloud-resume-challenge-on-aws)
