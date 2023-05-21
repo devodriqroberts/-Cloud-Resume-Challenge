@@ -243,5 +243,7 @@ $RECYCLE.BIN/
 
 # End of https://www.gitignore.io/api/osx,linux,python,windows,pycharm,visualstudiocode
 
+./resume-site/images
 /resume-site/images
+resume-site/images
 README.md
