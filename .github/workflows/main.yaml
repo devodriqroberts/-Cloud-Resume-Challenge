@@ -1,0 +1,11 @@
+name: main
+on: push
+env:
+  PYTHON_VERSION: 3.9
+
+jobs:
+  build-infra:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v2
