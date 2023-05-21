@@ -41,7 +41,21 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
       # SAM Build
       - run: sam build
-        working-directory: Cloud-Resume-Challenge
       # SAM Deploy
       - run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name cloud-resume-challenge
-        working-directory: Cloud-Resume-Challenge
+
+  sync-site:
+    needs: build-deploy-infra-site
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+      - uses: aws-actions/setup-sam@v1
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      # Sync Site
+      - run: aws s3 sync ./resume-site s3://cloud-resume-challenge-2023
