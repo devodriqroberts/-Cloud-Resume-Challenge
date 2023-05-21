@@ -1,6 +1,5 @@
 import json
 import boto3
-from boto3.dynamodb.conditions import Key
 
 DDB_TABLE_NAME = "cloud-resume-challenge"
 DDB_CLIENT = boto3.client('dynamodb', region_name="us-east-1")
