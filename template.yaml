@@ -14,9 +14,15 @@ Parameters:
   DomainName:
     Type: String
     Default: "devodriqroberts.com"
+  APIDomainName:
+    Type: String
+    Default: "api."
   DynamoDBTableName:
     Type: String
     Default: "cloud-resume-challenge"
+  HostedZoneID:
+    Type: String
+    Default: "Z05098842II2E0776MPUB"
 
 Resources:
   CloudResumeChallengeWebsite:
@@ -34,7 +40,7 @@ Resources:
   CloudResumeChallengeRoute53Record:
     Type: AWS::Route53::RecordSetGroup
     Properties:
-      HostedZoneId: Z05098842II2E0776MPUB
+      HostedZoneId: !Ref "HostedZoneID"
       RecordSets:
         - Name: !Ref "DomainName"
           Type: A
@@ -45,7 +51,13 @@ Resources:
   CloudResumeChallengeCertificate:
     Type: AWS::CertificateManager::Certificate
     Properties:
-      DomainName: !Ref "DomainName"
+      DomainName: !Join ["", ["*.", !Ref "DomainName"]]
+      SubjectAlternativeNames:
+        - !Ref "DomainName"
+        - !Join ["", ["*.", !Ref "DomainName"]]
+      DomainValidationOptions:
+        - DomainName: !Ref "DomainName"
+          HostedZoneId: !Ref "HostedZoneID"
       ValidationMethod: DNS
 
   CloudResumeChallengeDistribution:
@@ -112,12 +124,17 @@ Resources:
   ResumeViewCountApi:
     Type: AWS::Serverless::Api
     Properties:
+      StageName: Prod
+      Domain:
+        DomainName: !Join ["", [!Ref "APIDomainName", !Ref "DomainName"]]
+        CertificateArn: !Ref CloudResumeChallengeCertificate
+        Route53:
+          HostedZoneId: !Ref "HostedZoneID"
       Cors:
         AllowMethods: "'PUT', 'GET'"
         AllowOrigin: "'devodriqroberts.com'"
       EndpointConfiguration:
         Type: EDGE
-      StageName: Prod
       OpenApiVersion: 3.0.1
 
   CloudResumeChallengeDynamoDBTable:
